@@ -176,7 +176,9 @@ export fn main() void = {
 	// const b: [_]f32 = [1.0, 2.0, 3.0, 4.0];
 
 	// const res = rmsnorm(&a, &b)!;
-	const res = softmax(&a)!;
+	// const res = softmax(&a)!;
+
+	
 	defer free(res);
 
 	for (let elem .. res) {
