@@ -156,6 +156,34 @@ fn softmax(x: []f32) (nomem | []f32) = {
 	return o;
 };
 
+// d = no. of rows
+// n = no. of cols
+fn matmul(w: []f32, x: []f32, d: uint, n: uint) (nomem | []f32) = {
+	// W (d,n) @ x (n,) -> xout (d,)
+	// by far the most amount of time is spent inside this little function
+
+	// essential dim compatibility checks
+	assert(len(x) == n);
+	assert(len(w) == d * n);
+
+	let xout: []f32 = alloc([0.0...], d)?;
+
+	let i = 0z;
+	// TODO: parallelize this using OpenMP or smth similar
+	// ideally, in C, we would have
+	// #pragma omp parallel for private(i)
+	// at this point
+	for (i < d; i += 1) {
+		let val: f32 = 0.0;
+		for (let j = 0z; j < n; j += 1) {
+			val += w[i * n + j] * x[j];
+		};
+		xout[i] = val;
+	};
+
+	return xout;
+};
+
 
 export fn main() void = {
 	// match(load_config()) {
@@ -171,14 +199,21 @@ export fn main() void = {
 	// case let err: error =>
 	// 	fmt::fatalf("error: {}", strerror(err));
 	// };
+	
 
 	const a: [_]f32 = [1.0, 2.0, 3.0, 4.0];
 	// const b: [_]f32 = [1.0, 2.0, 3.0, 4.0];
 
+	const M: [_]f32 = [
+		1.0, 2.0, 3.0, 4.0,
+		1.0, 2.0, 3.0, 4.0,
+		1.0, 2.0, 3.0, 4.0,
+	];
+
 	// const res = rmsnorm(&a, &b)!;
 	// const res = softmax(&a)!;
-
-	
+	assert(len(a) == 4);
+	const res = matmul(&M, &a, 3, 4)!;
 	defer free(res);
 
 	for (let elem .. res) {
