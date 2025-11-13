@@ -49,6 +49,23 @@ const RunState = struct {
     k: []const f32, // key (dim,)
     v: []const f32, // value (dim,)
     att: []const f32, // buffer for scores/attention values (n_heads, seq_len)
+    logits: []const f32, // output logits
+    // kv cache
+    key_cache: []const f32, // (layer, seq_len, dim)
+    value_cache: []const f32, // (layer, seq_len, dim)
+
+    pub fn malloc(allocator: std.mem.Allocator, p: *Config) *RunState {
+        const att_head_dim = p.n_heads * p.head_dim;
+    }
+};
+
+const Transformer = struct {
+    config: Config, // the hyperparameters of the architecture (the blueprint)
+    weights: TransformerWeights, // the weights of the model
+    state: RunState, // buffers for the "wave" of activations in the forward pass
+    fd: i32, // file descriptor for memory mapping
+    data: []const f32, // memory mapped data pointer
+    file_size: isize, // size of the checkpoint file in bytes
 };
 
 pub fn main() void {}
