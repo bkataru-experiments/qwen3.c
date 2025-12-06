@@ -41,9 +41,43 @@ struct TransformerWeights {
 #[derive(Debug)]
 struct RunState {
     // current wave of activations
-    x: Box<[f32]>,   // activation at current time stamp (dim,)
-    xb: Box<[f32]>,  // buffer (dim,)
-    xb2: Box<[f32]>, // an additional buffer just for convenience
+    x: Box<[f32]>,      // activation at current time stamp (dim,)
+    xb: Box<[f32]>,     // buffer (dim,)
+    xb2: Box<[f32]>,    // an additional buffer just for convenience (dim,)
+    xb3: Box<[f32]>,    // an additional buffer just for convenience (att_head_dim,)
+    hb: Box<[f32]>,     // buffer for hidden dimension in the ffn (hidden_dim,)
+    hb2: Box<[f32]>,    // buffer for hidden dimension in the ffn (hidden_dim,)
+    q: Box<[f32]>,      // query (att_head_dim,)
+    k: Box<[f32]>,      // key (dim,)
+    v: Box<[f32]>,      // value (dim,)
+    att: Box<[f32]>,    // buffer for scores/attention values (n_heads, seq_len)
+    logits: Box<[f32]>, // output logits
+    // kv cache
+    key_cache: Box<[f32]>,   // (layer, seq_len, dim)
+    value_cache: Box<[f32]>, // (layer, seq_len, dim)
+}
+
+#[derive(Debug)]
+struct Transformer {
+    config: Config,              // the hyperparameters of the architecture (the blueprint)
+    weights: TransformerWeights, // the weights of the model
+    state: RunState,             // buffers for the "wave" of activations in the forward pass
+    fd: i32,                     // file descriptor for memory mapping
+    data: Box<[f32]>,            // memory mapped data pointer
+    file_size: isize,            // size of the checkpoint file in bytes
+}
+
+impl RunState {
+    pub fn calloc(p: Config) -> Self {
+        let att_head_dim = p.n_heads * p.head_dim;
+
+        Self {
+            x: vec![0.0; p.dim].into_boxed_slice(),
+            xb: vec![0.0; p.dim].into_boxed_slice(),
+            xb2: vec![0.0; p.dim].into_boxed_slice(),
+            xb3: vec![0.0; att_head_dim].into_boxed_slice(),
+        }
+    }
 }
 
 fn main() {
