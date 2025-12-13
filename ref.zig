@@ -116,7 +116,7 @@ const Transformer = struct {
     state: RunState, // buffers for the "wave" of activations in the forward pass
     fd: i32, // file descriptor for memory mapping
     data: []const f32, // memory mapped data pointer
-    file_size: isize, // size of the checkpoint file in bytes
+    file_size: usize, // size of the checkpoint file in bytes
 
     pub fn mmap()
 };
